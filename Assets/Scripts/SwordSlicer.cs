@@ -31,6 +31,22 @@ public class SwordSlicer : MonoBehaviour
     {
         if (Physics.Linecast(start, end, out RaycastHit hit))
         {
+            // Check for bomb
+            Bomb bomb = hit.collider.GetComponent<Bomb>();
+
+            if (bomb != null)
+            {
+                Debug.Log("💣 BOMB HIT!");
+
+                if (GameManager.Instance != null)
+                {
+                    GameManager.Instance.GameOver();
+                }
+
+                return;
+            }
+
+            // Check for fruit
             Fruit fruit = hit.collider.GetComponent<Fruit>();
 
             if (fruit != null)

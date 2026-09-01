@@ -2,11 +2,12 @@ using UnityEngine;
 
 public class FruitSpawner : MonoBehaviour
 {
-    [Header("Fruit")]
+    [Header("Prefabs")]
     public GameObject fruitPrefab;
+    public GameObject bombPrefab;
 
     [Header("Spawn Settings")]
-    public float spawnInterval = 1.2f;
+    public float spawnInterval = 1.8f;
     public float spawnXRange = 4.5f;
     public float spawnY = -4.5f;
     public float spawnZ = 5f;
@@ -18,8 +19,14 @@ public class FruitSpawner : MonoBehaviour
 
     [Header("Group Settings")]
     public int minFruitsPerGroup = 1;
-    public int maxFruitsPerGroup = 3;
-    public float groupSpawnDelay = 0.12f;
+    public int maxFruitsPerGroup = 2;
+    public float groupSpawnDelay = 0.15f;
+
+    [Header("Bomb Settings")]
+    [Range(0f, 1f)]
+    public float bombChance = 0.1f;
+
+    private bool spawning = true;
 
     void Start()
     {
@@ -28,25 +35,31 @@ public class FruitSpawner : MonoBehaviour
 
     void SpawnGroup()
     {
-        int fruitCount = Random.Range(
+        if (!spawning)
+            return;
+
+        int objectCount = Random.Range(
             minFruitsPerGroup,
             maxFruitsPerGroup + 1
         );
 
-        StartCoroutine(SpawnFruits(fruitCount));
+        StartCoroutine(SpawnObjects(objectCount));
     }
 
-    System.Collections.IEnumerator SpawnFruits(int count)
+    System.Collections.IEnumerator SpawnObjects(int count)
     {
         for (int i = 0; i < count; i++)
         {
-            SpawnFruit();
+            if (!spawning)
+                yield break;
+
+            SpawnObject();
 
             yield return new WaitForSeconds(groupSpawnDelay);
         }
     }
 
-    void SpawnFruit()
+    void SpawnObject()
     {
         float randomX = Random.Range(-spawnXRange, spawnXRange);
 
@@ -56,13 +69,24 @@ public class FruitSpawner : MonoBehaviour
             spawnZ
         );
 
-        GameObject fruit = Instantiate(
-            fruitPrefab,
+        GameObject prefabToSpawn;
+
+        if (Random.value < bombChance && bombPrefab != null)
+        {
+            prefabToSpawn = bombPrefab;
+        }
+        else
+        {
+            prefabToSpawn = fruitPrefab;
+        }
+
+        GameObject spawnedObject = Instantiate(
+            prefabToSpawn,
             spawnPosition,
             Quaternion.identity
         );
 
-        Rigidbody rb = fruit.GetComponent<Rigidbody>();
+        Rigidbody rb = spawnedObject.GetComponent<Rigidbody>();
 
         if (rb != null)
         {
@@ -78,5 +102,11 @@ public class FruitSpawner : MonoBehaviour
                 0f
             );
         }
+    }
+
+    public void StopSpawning()
+    {
+        spawning = false;
+        CancelInvoke(nameof(SpawnGroup));
     }
 }
