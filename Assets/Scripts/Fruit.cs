@@ -1,15 +1,21 @@
+
 using UnityEngine;
 
 public class Fruit : MonoBehaviour
 {
-    private void OnTriggerEnter(Collider other)
-    {
-        Debug.Log("Something touched the fruit: " + other.gameObject.name);
+    private bool sliced = false;
 
-        if (other.GetComponent<SwordController>() != null)
-        {
-            Debug.Log("SLICE!");
-            Destroy(gameObject);
-        }
+    public void Slice()
+    {
+        // Prevent the same fruit from being sliced more than once
+        if (sliced)
+            return;
+
+        sliced = true;
+
+        Debug.Log("🍎 FRUIT SLICED!");
+
+        // Destroy the fruit
+        Destroy(gameObject);
     }
 }
