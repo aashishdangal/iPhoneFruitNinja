@@ -2,27 +2,43 @@ using UnityEngine;
 
 public class SwordSlicer : MonoBehaviour
 {
-    private Vector3 previousPosition;
+    public Transform swordBase;
+
+    private Vector3 previousTipPosition;
+    private Vector3 previousBasePosition;
 
     void Start()
     {
-        previousPosition = transform.position;
+        previousTipPosition = transform.position;
+        previousBasePosition = swordBase.position;
     }
 
     void Update()
     {
-        Vector3 currentPosition = transform.position;
+        Vector3 currentTipPosition = transform.position;
+        Vector3 currentBasePosition = swordBase.position;
 
-        if (Physics.Linecast(previousPosition, currentPosition, out RaycastHit hit))
+        CheckBlade(previousTipPosition, currentTipPosition);
+        CheckBlade(previousBasePosition, currentBasePosition);
+        CheckBlade(previousTipPosition, currentBasePosition);
+        CheckBlade(previousBasePosition, currentTipPosition);
+
+        previousTipPosition = currentTipPosition;
+        previousBasePosition = currentBasePosition;
+    }
+
+    void CheckBlade(Vector3 start, Vector3 end)
+    {
+        if (Physics.Linecast(start, end, out RaycastHit hit))
         {
-            if (hit.collider.GetComponent<Fruit>() != null)
-            {
-                Debug.Log("🍉 SLICED BY SWORD TRAIL!");
+            Fruit fruit = hit.collider.GetComponent<Fruit>();
 
-                Destroy(hit.collider.gameObject);
+            if (fruit != null)
+            {
+                Debug.Log("🍉 SLICED!");
+
+                Destroy(fruit.gameObject);
             }
         }
-
-        previousPosition = currentPosition;
     }
 }

@@ -2,23 +2,58 @@ using UnityEngine;
 
 public class FruitSpawner : MonoBehaviour
 {
+    [Header("Fruit")]
     public GameObject fruitPrefab;
+
+    [Header("Spawn Settings")]
     public float spawnInterval = 1.2f;
-    public float launchForce = 7f;
+    public float spawnXRange = 4.5f;
+    public float spawnY = -4.5f;
+    public float spawnZ = 5f;
+
+    [Header("Launch Settings")]
+    public float minUpwardForce = 8f;
+    public float maxUpwardForce = 10f;
+    public float horizontalForce = 2.5f;
+
+    [Header("Group Settings")]
+    public int minFruitsPerGroup = 1;
+    public int maxFruitsPerGroup = 3;
+    public float groupSpawnDelay = 0.12f;
 
     void Start()
     {
-        InvokeRepeating(nameof(SpawnFruit), 1f, spawnInterval);
+        InvokeRepeating(nameof(SpawnGroup), 1f, spawnInterval);
+    }
+
+    void SpawnGroup()
+    {
+        int fruitCount = Random.Range(
+            minFruitsPerGroup,
+            maxFruitsPerGroup + 1
+        );
+
+        StartCoroutine(SpawnFruits(fruitCount));
+    }
+
+    System.Collections.IEnumerator SpawnFruits(int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            SpawnFruit();
+
+            yield return new WaitForSeconds(groupSpawnDelay);
+        }
     }
 
     void SpawnFruit()
     {
-        float randomX = Random.Range(-4f, 4f);
+        float randomX = Random.Range(-spawnXRange, spawnXRange);
 
         Vector3 spawnPosition = new Vector3(
             randomX,
-            -4f,
-            5f
+            spawnY,
+            spawnZ
         );
 
         GameObject fruit = Instantiate(
@@ -31,9 +66,15 @@ public class FruitSpawner : MonoBehaviour
 
         if (rb != null)
         {
+            float horizontalVelocity =
+                Random.Range(-horizontalForce, horizontalForce);
+
+            float upwardVelocity =
+                Random.Range(minUpwardForce, maxUpwardForce);
+
             rb.linearVelocity = new Vector3(
-                Random.Range(-1.5f, 1.5f),
-                launchForce,
+                horizontalVelocity,
+                upwardVelocity,
                 0f
             );
         }
