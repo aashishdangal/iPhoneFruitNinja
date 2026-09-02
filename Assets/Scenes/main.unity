@@ -381,6 +381,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SwordSlicer
   swordBase: {fileID: 1833255290}
   swordTip: {fileID: 260794298}
+  minimumMovement: 0.005
+  stopTime: 0.12
+  directionThreshold: 0.5
+  bladeRadius: 0.11
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -988,7 +992,6 @@ MonoBehaviour:
   scoreText: {fileID: 1070246551}
   comboText: {fileID: 1463723511}
   fruitHitsText: {fileID: 776347928}
-  comboTime: 1.46
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -1635,7 +1638,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 146}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1463723511
@@ -1798,19 +1801,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b55cce815d434535aa8062cf09e440e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FruitSpawner
-  fruitPrefab: {fileID: 7270720298408755709, guid: 46398cfc4ee1f444b81e142fea926eda, type: 3}
+  fruitPrefabs:
+  - {fileID: 7270720298408755709, guid: 46398cfc4ee1f444b81e142fea926eda, type: 3}
+  - {fileID: 7270720298408755709, guid: 77118600271b84cc8bd0add045e30a89, type: 3}
   bombPrefab: {fileID: 7270720298408755709, guid: 6144cc31e1e9847f8a004dd706bfb317, type: 3}
-  spawnInterval: 1
-  spawnXRange: 4.5
+  minX: -5
+  maxX: 5
   spawnY: -4.5
   spawnZ: 5
-  minUpwardForce: 8
-  maxUpwardForce: 10
-  horizontalForce: 2.5
-  minFruitsPerGroup: 1
-  maxFruitsPerGroup: 2
-  groupSpawnDelay: 0.15
+  minForce: 8
+  maxForce: 12
+  minHorizontalForce: -4
+  maxHorizontalForce: 4
+  minSpawnDelay: 0.8
+  maxSpawnDelay: 1.5
+  minFruitsPerWave: 1
+  maxFruitsPerWave: 3
   bombChance: 0.1
+  difficultyIncreaseTime: 20
+  forceIncreasePerLevel: 0.5
 --- !u!4 &1951264282
 Transform:
   m_ObjectHideFlags: 0

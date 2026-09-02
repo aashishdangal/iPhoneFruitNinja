@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,116 +6,342 @@ public class SwordSlicer : MonoBehaviour
     public Transform swordBase;
     public Transform swordTip;
 
-    [Header("Stroke Settings")]
-    public float minimumMovement = 0.02f;
-    public float strokeEndTime = 0.12f;
+    [Header("Movement Settings")]
+    public float minimumMovement = 0.005f;
+
+    [Header("Stroke End")]
+    public float stopTime = 0.12f;
+
+    [Header("Direction Settings")]
+    [Range(0f, 1f)]
+    public float directionThreshold = 0.5f;
+
+    [Header("Hit Detection")]
+    public float bladeRadius = 0.18f;
 
     private Vector3 previousBasePosition;
     private Vector3 previousTipPosition;
 
+    private Vector3 previousMovementDirection;
+
     private float timeSinceMovement = 0f;
 
-    // Fruits already hit during THIS stroke
-    private HashSet<Fruit> fruitsHitThisStroke = new HashSet<Fruit>();
+    // Fruits hit during the current stroke
+    private HashSet<Fruit> fruitsHitThisStroke =
+        new HashSet<Fruit>();
 
     void Start()
     {
+        if (swordBase == null || swordTip == null)
+        {
+            Debug.LogError(
+                "❌ SwordSlicer: Sword Base or Sword Tip is not assigned!"
+            );
+
+            enabled = false;
+            return;
+        }
+
         previousBasePosition = swordBase.position;
         previousTipPosition = swordTip.position;
+
+        previousMovementDirection = Vector3.zero;
     }
 
     void Update()
     {
+        if (Time.timeScale == 0f)
+            return;
+
         Vector3 currentBasePosition = swordBase.position;
         Vector3 currentTipPosition = swordTip.position;
 
-        float movement =
-            Vector3.Distance(previousBasePosition, currentBasePosition) +
-            Vector3.Distance(previousTipPosition, currentTipPosition);
+        Vector3 baseMovement =
+            currentBasePosition - previousBasePosition;
 
-        if (movement > minimumMovement)
+        Vector3 tipMovement =
+            currentTipPosition - previousTipPosition;
+
+        float tipMovementDistance =
+            tipMovement.magnitude;
+
+        // =========================================
+        // SWORD IS MOVING
+        // =========================================
+
+        if (tipMovementDistance > minimumMovement)
         {
+            // Reset stop timer
             timeSinceMovement = 0f;
 
-            // Check the blade movement
-            CheckBlade(previousBasePosition, currentBasePosition);
-            CheckBlade(previousTipPosition, currentTipPosition);
+            Vector3 currentDirection =
+                tipMovement.normalized;
 
-            // Diagonal checks
-            CheckBlade(previousBasePosition, currentTipPosition);
-            CheckBlade(previousTipPosition, currentBasePosition);
+            // =========================================
+            // CHECK DIRECTION CHANGE
+            // =========================================
+
+            if (previousMovementDirection != Vector3.zero)
+            {
+                float directionDot =
+                    Vector3.Dot(
+                        previousMovementDirection,
+                        currentDirection
+                    );
+
+                if (directionDot < directionThreshold)
+                {
+                    Debug.Log(
+                        "🔄 DIRECTION CHANGED → NEW STROKE"
+                    );
+
+                    FinishStroke();
+                }
+            }
+
+            previousMovementDirection =
+                currentDirection;
+
+            // =========================================
+            // CHECK SWORD SWEEP
+            // =========================================
+
+            CheckBladeSweep(
+                previousBasePosition,
+                previousTipPosition,
+                currentBasePosition,
+                currentTipPosition
+            );
         }
         else
         {
+            // =========================================
+            // SWORD HAS STOPPED
+            // =========================================
+
             timeSinceMovement += Time.deltaTime;
 
-            // Sword stopped moving → finish the stroke
-            if (timeSinceMovement >= strokeEndTime &&
-                fruitsHitThisStroke.Count > 0)
+            if (timeSinceMovement >= stopTime)
             {
-                FinishStroke();
-            }
-        }
-
-        previousBasePosition = currentBasePosition;
-        previousTipPosition = currentTipPosition;
-    }
-
-    void CheckBlade(Vector3 start, Vector3 end)
-    {
-        if (Physics.Linecast(start, end, out RaycastHit hit))
-        {
-            // 💣 Bomb
-            Bomb bomb = hit.collider.GetComponent<Bomb>();
-
-            if (bomb != null)
-            {
-                Debug.Log("💣 BOMB HIT!");
-
-                if (GameManager.Instance != null)
+                if (fruitsHitThisStroke.Count > 0)
                 {
-                    GameManager.Instance.GameOver();
-                }
-
-                return;
-            }
-
-            // 🍎 Fruit
-            Fruit fruit = hit.collider.GetComponent<Fruit>();
-
-            if (fruit != null)
-            {
-                // Prevent the same fruit being counted multiple times
-                // during the same sword stroke.
-                if (!fruitsHitThisStroke.Contains(fruit))
-                {
-                    fruitsHitThisStroke.Add(fruit);
-
                     Debug.Log(
-                        "🍎 Fruit hit in current stroke: " +
-                        fruitsHitThisStroke.Count
+                        "⏸️ SWORD STOPPED → STROKE FINISHED"
                     );
 
-                    fruit.Slice();
+                    FinishStroke();
                 }
+
+                // IMPORTANT:
+                // Forget the previous direction.
+                // The next movement starts a NEW stroke.
+                previousMovementDirection =
+                    Vector3.zero;
+
+                timeSinceMovement = 0f;
+            }
+        }
+
+        previousBasePosition =
+            currentBasePosition;
+
+        previousTipPosition =
+            currentTipPosition;
+    }
+
+    // =========================================
+    // BLADE SWEEP
+    // =========================================
+
+    void CheckBladeSweep(
+        Vector3 oldBase,
+        Vector3 oldTip,
+        Vector3 newBase,
+        Vector3 newTip
+    )
+    {
+        CheckCapsuleCast(
+            oldBase,
+            oldTip,
+            newBase - oldBase
+        );
+
+        CheckCapsuleCast(
+            oldBase,
+            oldTip,
+            newTip - oldTip
+        );
+
+        CheckCurrentBlade(
+            newBase,
+            newTip
+        );
+    }
+
+    // =========================================
+    // CAPSULE CAST
+    // =========================================
+
+    void CheckCapsuleCast(
+        Vector3 point1,
+        Vector3 point2,
+        Vector3 movement
+    )
+    {
+        float distance =
+            movement.magnitude;
+
+        if (distance <= 0.0001f)
+            return;
+
+        Vector3 direction =
+            movement.normalized;
+
+        RaycastHit[] hits =
+            Physics.CapsuleCastAll(
+                point1,
+                point2,
+                bladeRadius,
+                direction,
+                distance
+            );
+
+        ProcessHits(hits);
+    }
+
+    // =========================================
+    // CURRENT BLADE
+    // =========================================
+
+    void CheckCurrentBlade(
+        Vector3 basePosition,
+        Vector3 tipPosition
+    )
+    {
+        Collider[] colliders =
+            Physics.OverlapCapsule(
+                basePosition,
+                tipPosition,
+                bladeRadius
+            );
+
+        foreach (Collider collider in colliders)
+        {
+            ProcessCollider(collider);
+        }
+    }
+
+    // =========================================
+    // PROCESS HITS
+    // =========================================
+
+    void ProcessHits(RaycastHit[] hits)
+    {
+        foreach (RaycastHit hit in hits)
+        {
+            ProcessCollider(hit.collider);
+        }
+    }
+
+    void ProcessCollider(Collider collider)
+    {
+        if (collider == null)
+            return;
+
+        // =========================================
+        // BOMB
+        // =========================================
+
+        Bomb bomb =
+            collider.GetComponentInParent<Bomb>();
+
+        if (bomb != null)
+        {
+            Debug.Log("💣 BOMB HIT!");
+
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.GameOver();
+            }
+
+            return;
+        }
+
+        // =========================================
+        // FRUIT
+        // =========================================
+
+        Fruit fruit =
+            collider.GetComponentInParent<Fruit>();
+
+        if (fruit != null)
+        {
+            if (!fruitsHitThisStroke.Contains(fruit))
+            {
+                fruitsHitThisStroke.Add(fruit);
+
+                Debug.Log(
+                    "🍎 FRUIT HIT! " +
+                    "Stroke fruits = " +
+                    fruitsHitThisStroke.Count
+                );
+
+                fruit.Slice();
             }
         }
     }
+
+    // =========================================
+    // FINISH STROKE
+    // =========================================
 
     void FinishStroke()
     {
-        int fruitsHit = fruitsHitThisStroke.Count;
+        if (fruitsHitThisStroke.Count == 0)
+            return;
+
+        int fruitsInStroke =
+            fruitsHitThisStroke.Count;
 
         Debug.Log(
-            "🗡️ STROKE FINISHED — Fruits sliced: " +
-            fruitsHit
+            "🗡️ STROKE FINISHED → " +
+            fruitsInStroke +
+            " fruit(s)"
         );
 
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.ProcessStroke(fruitsHit);
+            GameManager.Instance.ProcessStroke(
+                fruitsInStroke
+            );
         }
 
         fruitsHitThisStroke.Clear();
+    }
+
+    // =========================================
+    // DEBUG
+    // =========================================
+
+    void OnDrawGizmos()
+    {
+        if (swordBase == null ||
+            swordTip == null)
+            return;
+
+        Gizmos.DrawLine(
+            swordBase.position,
+            swordTip.position
+        );
+
+        Gizmos.DrawWireSphere(
+            swordBase.position,
+            bladeRadius
+        );
+
+        Gizmos.DrawWireSphere(
+            swordTip.position,
+            bladeRadius
+        );
     }
 }
