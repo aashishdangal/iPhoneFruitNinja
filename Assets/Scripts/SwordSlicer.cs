@@ -245,7 +245,7 @@ public class SwordSlicer : MonoBehaviour
 
     void ProcessCollider(Collider collider)
     {
-        if (collider == null)
+        if (collider == null || Time.timeScale == 0f)
             return;
 
         // =========================================
@@ -257,13 +257,7 @@ public class SwordSlicer : MonoBehaviour
 
         if (bomb != null)
         {
-            Debug.Log("💣 BOMB HIT!");
-
-            if (GameManager.Instance != null)
-            {
-                GameManager.Instance.GameOver();
-            }
-
+            bomb.Explode();
             return;
         }
 

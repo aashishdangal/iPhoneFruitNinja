@@ -24,15 +24,17 @@ public class FruitSpawner : MonoBehaviour
     [Header("Wave Settings")]
     public float minSpawnDelay = 1.5f;
     public float maxSpawnDelay = 2.2f;
-
     public int minFruitsPerWave = 1;
     public int maxFruitsPerWave = 3;
-
     public float fruitSpacing = 0.12f;
 
     [Header("Bomb Settings")]
     [Range(0f, 1f)]
     public float bombChance = 0.12f;
+
+    [Header("Bomb Drop Settings")]
+    public float bombSpawnY = 7f;
+    public float bombFallSpeed = 3f;
 
     [Header("Difficulty")]
     public float difficultyIncreaseTime = 20f;
@@ -43,8 +45,6 @@ public class FruitSpawner : MonoBehaviour
 
     void Start()
     {
-        Debug.Log("🍎 FruitSpawner started!");
-
         StartCoroutine(SpawnLoop());
     }
 
@@ -60,11 +60,10 @@ public class FruitSpawner : MonoBehaviour
     {
         while (spawning)
         {
-            float delay =
-                Random.Range(
-                    minSpawnDelay,
-                    maxSpawnDelay
-                );
+            float delay = Random.Range(
+                minSpawnDelay,
+                maxSpawnDelay
+            );
 
             yield return new WaitForSeconds(delay);
 
@@ -77,29 +76,22 @@ public class FruitSpawner : MonoBehaviour
 
     void SpawnWave()
     {
-        Debug.Log("🌊 SPAWN WAVE");
+        int difficultyLevel = difficultyIncreaseTime > 0f
+            ? Mathf.FloorToInt(gameTime / difficultyIncreaseTime)
+            : 0;
 
-        int difficultyLevel =
-            Mathf.FloorToInt(
-                gameTime / difficultyIncreaseTime
-            );
-
-        int fruitCount =
-            Random.Range(
-                minFruitsPerWave,
-                maxFruitsPerWave + 1
-            );
+        int fruitCount = Random.Range(
+            minFruitsPerWave,
+            maxFruitsPerWave + 1
+        );
 
         if (Random.value < bombChance)
         {
-            SpawnBomb(difficultyLevel);
+            SpawnBomb();
         }
 
         StartCoroutine(
-            SpawnFruitWave(
-                fruitCount,
-                difficultyLevel
-            )
+            SpawnFruitWave(fruitCount, difficultyLevel)
         );
     }
 
@@ -115,196 +107,120 @@ public class FruitSpawner : MonoBehaviour
 
             SpawnFruit(difficultyLevel);
 
-            yield return new WaitForSeconds(
-                fruitSpacing
-            );
+            yield return new WaitForSeconds(fruitSpacing);
         }
     }
 
     void SpawnFruit(int difficultyLevel)
     {
-        if (fruitPrefabs == null ||
-            fruitPrefabs.Length == 0)
+        if (fruitPrefabs == null || fruitPrefabs.Length == 0)
         {
-            Debug.LogError(
-                "❌ NO FRUIT PREFABS ASSIGNED!"
-            );
-
+            Debug.LogError("No fruit prefabs assigned!");
             return;
         }
 
-        GameObject fruitPrefab =
-            fruitPrefabs[
-                Random.Range(
-                    0,
-                    fruitPrefabs.Length
-                )
-            ];
+        GameObject fruitPrefab = fruitPrefabs[
+            Random.Range(0, fruitPrefabs.Length)
+        ];
 
         if (fruitPrefab == null)
         {
-            Debug.LogError(
-                "❌ Fruit prefab slot is EMPTY!"
-            );
-
+            Debug.LogError("Fruit prefab slot is empty!");
             return;
         }
 
-        float x =
-            Random.Range(
-                minX,
-                maxX
-            );
-
-        Vector3 spawnPosition =
-            new Vector3(
-                x,
-                spawnY,
-                spawnZ
-            );
-
-        GameObject fruit =
-            Instantiate(
-                fruitPrefab,
-                spawnPosition,
-                Quaternion.identity
-            );
-
-        Debug.Log(
-            "🍎 FRUIT SPAWNED at " +
-            spawnPosition
+        Vector3 spawnPosition = new Vector3(
+            Random.Range(minX, maxX),
+            spawnY,
+            spawnZ
         );
 
-        Rigidbody rb =
-            fruit.GetComponent<Rigidbody>();
+        GameObject fruit = Instantiate(
+            fruitPrefab,
+            spawnPosition,
+            fruitPrefab.transform.rotation
+        );
 
-        if (rb != null)
+        Rigidbody rb = fruit.GetComponent<Rigidbody>();
+
+        if (rb == null)
         {
-            float verticalForce =
-                Random.Range(
-                    minForce,
-                    maxForce
-                ) +
-                difficultyLevel *
-                forceIncreasePerLevel;
-
-            float horizontalForce =
-                Random.Range(
-                    minHorizontalForce,
-                    maxHorizontalForce
-                );
-
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
-
-            rb.AddForce(
-                new Vector3(
-                    horizontalForce,
-                    verticalForce,
-                    0f
-                ),
-                ForceMode.Impulse
-            );
-
-            // LOCK ONLY DEPTH
-            rb.constraints =
-                RigidbodyConstraints.FreezePositionZ;
-
-            // Spin only around Z
-            rb.AddTorque(
-                Vector3.forward *
-                Random.Range(-3f, 3f),
-                ForceMode.Impulse
-            );
+            Debug.LogWarning("Fruit has no Rigidbody!");
+            return;
         }
-        else
-        {
-            Debug.LogWarning(
-                "⚠️ Fruit has NO Rigidbody!"
-            );
-        }
+
+        float verticalForce =
+            Random.Range(minForce, maxForce) +
+            difficultyLevel * forceIncreasePerLevel;
+
+        float horizontalForce = Random.Range(
+            minHorizontalForce,
+            maxHorizontalForce
+        );
+
+        rb.isKinematic = false;
+        rb.useGravity = true;
+
+        // Keep fruits on the gameplay plane and steady.
+        rb.constraints =
+            RigidbodyConstraints.FreezePositionZ |
+            RigidbodyConstraints.FreezeRotation;
+
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+
+        rb.AddForce(
+            new Vector3(horizontalForce, verticalForce, 0f),
+            ForceMode.Impulse
+        );
     }
 
-    void SpawnBomb(int difficultyLevel)
+    void SpawnBomb()
     {
         if (bombPrefab == null)
         {
-            Debug.LogWarning(
-                "⚠️ Bomb prefab not assigned!"
-            );
-
+            Debug.LogWarning("Bomb prefab not assigned!");
             return;
         }
 
-        float x =
-            Random.Range(
-                minX,
-                maxX
-            );
+        Vector3 spawnPosition = new Vector3(
+            Random.Range(minX, maxX),
+            bombSpawnY,
+            spawnZ
+        );
 
-        Vector3 spawnPosition =
-            new Vector3(
-                x,
-                spawnY,
-                spawnZ
-            );
+        // Preserve the nose-down rotation saved in the prefab.
+        GameObject bomb = Instantiate(
+            bombPrefab,
+            spawnPosition,
+            bombPrefab.transform.rotation
+        );
 
-        GameObject bomb =
-            Instantiate(
-                bombPrefab,
-                spawnPosition,
-                Quaternion.identity
-            );
+        Rigidbody rb = bomb.GetComponent<Rigidbody>();
 
-        Rigidbody rb =
-            bomb.GetComponent<Rigidbody>();
-
-        if (rb != null)
+        if (rb == null)
         {
-            float verticalForce =
-                Random.Range(
-                    minForce,
-                    maxForce
-                ) +
-                difficultyLevel *
-                forceIncreasePerLevel;
-
-            float horizontalForce =
-                Random.Range(
-                    minHorizontalForce,
-                    maxHorizontalForce
-                );
-
-            rb.linearVelocity = Vector3.zero;
-
-            rb.AddForce(
-                new Vector3(
-                    horizontalForce,
-                    verticalForce,
-                    0f
-                ),
-                ForceMode.Impulse
-            );
-
-            rb.constraints =
-                RigidbodyConstraints.FreezePositionZ;
-
-            rb.AddTorque(
-                Vector3.forward *
-                Random.Range(-3f, 3f),
-                ForceMode.Impulse
-            );
+            Debug.LogWarning("Bomb has no Rigidbody!");
+            return;
         }
+
+        rb.isKinematic = false;
+        rb.useGravity = true;
+
+        rb.constraints =
+            RigidbodyConstraints.FreezePositionZ |
+            RigidbodyConstraints.FreezeRotation;
+
+        rb.angularVelocity = Vector3.zero;
+
+        // Start downward; gravity accelerates the fall.
+        rb.linearVelocity =
+            Vector3.down * Mathf.Max(0f, bombFallSpeed);
     }
 
     public void StopSpawning()
     {
         spawning = false;
-
         StopAllCoroutines();
-
-        Debug.Log(
-            "🛑 Fruit Spawner Stopped"
-        );
     }
 }
