@@ -63,7 +63,7 @@ PrefabInstance:
     - target: {fileID: -7511558181221131132, guid: 50408ad220f4b4da1bae7344d19e9a03, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 12b957477d7a241edbadee48f351daeb, type: 2}
+      objectReference: {fileID: 2100000, guid: bf81be085d2984e06b99a181614ae827, type: 2}
     - target: {fileID: 919132149155446097, guid: 50408ad220f4b4da1bae7344d19e9a03, type: 3}
       propertyPath: m_Name
       value: Mango_Half
@@ -75,6 +75,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 50408ad220f4b4da1bae7344d19e9a03, type: 3}
       insertIndex: -1
       addedObject: {fileID: -2809772282923792755}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 50408ad220f4b4da1bae7344d19e9a03, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5545638002840502142}
   m_SourcePrefab: {fileID: 100100000, guid: 50408ad220f4b4da1bae7344d19e9a03, type: 3}
 --- !u!1 &4914928476639667676 stripped
 GameObject:
@@ -108,3 +111,17 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &5545638002840502142
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4914928476639667676}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b38b62c0f0e1457dadb5b70cbfd4a69, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FadeFruitPiece
+  delayBeforeFade: 0.15
+  fadeDuration: 1.5

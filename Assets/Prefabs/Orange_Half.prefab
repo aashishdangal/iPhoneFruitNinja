@@ -63,7 +63,7 @@ PrefabInstance:
     - target: {fileID: -7511558181221131132, guid: c54c2312ee9944a508bef95ee25c3931, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 3b23cdacb983d4796a9b80ec99e75e81, type: 2}
+      objectReference: {fileID: 2100000, guid: 053e5336476e34b008625a1355412d67, type: 2}
     - target: {fileID: 919132149155446097, guid: c54c2312ee9944a508bef95ee25c3931, type: 3}
       propertyPath: m_Name
       value: Orange_Half
@@ -75,6 +75,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: c54c2312ee9944a508bef95ee25c3931, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6315929590615541463}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: c54c2312ee9944a508bef95ee25c3931, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 165726908002631525}
   m_SourcePrefab: {fileID: 100100000, guid: c54c2312ee9944a508bef95ee25c3931, type: 3}
 --- !u!1 &2788787500650945336 stripped
 GameObject:
@@ -108,3 +111,17 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &165726908002631525
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2788787500650945336}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b38b62c0f0e1457dadb5b70cbfd4a69, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FadeFruitPiece
+  delayBeforeFade: 0.15
+  fadeDuration: 1.5

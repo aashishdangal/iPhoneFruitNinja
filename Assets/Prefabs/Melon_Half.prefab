@@ -63,7 +63,7 @@ PrefabInstance:
     - target: {fileID: -7511558181221131132, guid: 18fc16781505c4740b3fee037623ac09, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: f341ff2a8db5b42bc95a65b4417f4869, type: 2}
+      objectReference: {fileID: 2100000, guid: 69847e6796c404fbcb58fb4ad23796f0, type: 2}
     - target: {fileID: 919132149155446097, guid: 18fc16781505c4740b3fee037623ac09, type: 3}
       propertyPath: m_Name
       value: Melon_Half
@@ -75,6 +75,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 18fc16781505c4740b3fee037623ac09, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1222981412484912436}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 18fc16781505c4740b3fee037623ac09, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6584370979421119527}
   m_SourcePrefab: {fileID: 100100000, guid: 18fc16781505c4740b3fee037623ac09, type: 3}
 --- !u!1 &7670596423716636947 stripped
 GameObject:
@@ -108,3 +111,17 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &6584370979421119527
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7670596423716636947}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b38b62c0f0e1457dadb5b70cbfd4a69, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FadeFruitPiece
+  delayBeforeFade: 0.15
+  fadeDuration: 1.5
