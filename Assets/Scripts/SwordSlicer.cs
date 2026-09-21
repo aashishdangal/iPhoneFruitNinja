@@ -281,6 +281,13 @@ public class SwordSlicer : MonoBehaviour
                 );
 
                 fruit.Slice();
+                KhukuriAnimation animation =
+                GetComponentInParent<KhukuriAnimation>();
+
+                if (animation != null)
+                {
+                    animation.PlayCutAnimation();
+                }
             }
         }
     }
