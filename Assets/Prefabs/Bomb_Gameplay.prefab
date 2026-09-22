@@ -149,3 +149,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Bomb
   destroyBelowY: -8
   blastPrefab: {fileID: 5726895499991150508, guid: 564f38c7782ef4b34b398f4353f18bf0, type: 3}
+  bombFallingSound: {fileID: 8300000, guid: c1de777ac4726444fa85d3f63e4fb692, type: 3}
+  fallingVolume: 0.3

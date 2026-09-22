@@ -29,6 +29,11 @@ public class SwordSlicer : MonoBehaviour
     // Fruits hit during the current stroke
     private HashSet<Fruit> fruitsHitThisStroke =
         new HashSet<Fruit>();
+    
+    [Header("Slice Sound")]
+    public AudioSource sliceAudioSource;
+    public AudioClip fruitSliceSound;
+
 
     void Start()
     {
@@ -281,6 +286,10 @@ public class SwordSlicer : MonoBehaviour
                 );
 
                 fruit.Slice();
+                if (sliceAudioSource != null && fruitSliceSound != null)
+                    {
+                        sliceAudioSource.PlayOneShot(fruitSliceSound);
+                    }
                 KhukuriAnimation animation =
                 GetComponentInParent<KhukuriAnimation>();
 
